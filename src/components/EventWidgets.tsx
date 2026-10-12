@@ -1,21 +1,16 @@
 import { Link } from "react-router-dom";
-
-export interface EventInfo {
-  id: string;
-  name: string;
-  date?: string;
-  image?: string;
-  venue?: string;
-  city?: string;
-  classification?: string;
-}
+import type { EventItem } from "../features/events/eventsSlice";
 
 interface EventFiltersProps {
   onSearch?: (keyword: string, classification: string) => void;
 }
 
 export function EventFilters({ onSearch }: EventFiltersProps) {
-  function handleSubmit(formData: FormData) {
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
     onSearch?.(
       String(formData.get("keyword") ?? ""),
       String(formData.get("classification") ?? ""),
@@ -25,7 +20,7 @@ export function EventFilters({ onSearch }: EventFiltersProps) {
   return (
     <form
       className="flex flex-col gap-3 sm:flex-row"
-      action={(formData) => handleSubmit(formData)}
+      onSubmit={handleSubmit}
     >
       <input
         className="input input-neutral w-full"
@@ -43,8 +38,12 @@ export function EventFilters({ onSearch }: EventFiltersProps) {
         <option value="Music">Music</option>
         <option value="Sports">Sports</option>
         <option value="Arts & Theatre">Arts &amp; Theatre</option>
+        <option value="Family">Family</option>
+        <option value="Film">Film</option>
+        <option value="Miscellaneous">Miscellaneous</option>
       </select>
-      <button className="btn btn-secondary border-2 border-double-neutral shadow-md" type="submit">
+
+      <button className="btn btn-secondary border-2 border-double border-neutral shadow-md" type="submit">
         Search
       </button>
     </form>
@@ -52,21 +51,17 @@ export function EventFilters({ onSearch }: EventFiltersProps) {
 }
 
 interface EventCardProps {
-  event: EventInfo;
-  onRegister?: (event: EventInfo) => void;
+  event: EventItem;
+  onRegister?: (event: EventItem) => void;
   showRegister?: boolean;
 }
 
-export function EventCard({
-  event,
-  onRegister,
-  showRegister = false,
-}: EventCardProps) {
+export function EventCard({ event, onRegister, showRegister = false }: EventCardProps) {
   return (
-    <article className="card border border-base-300 bg-base-100 shadow-sm sm:card-side">
-      {event.image && (
+    <article className="card border border-neutral bg-base-200 shadow-lg rounded-4xl sm:card-side">
+      {event.photos && (
         <figure className="sm:max-w-56">
-          <img src={event.image} alt="" className="h-48 w-full object-cover sm:h-full" />
+          <img src={event.photos} alt="" className="h-48 w-full object-cover sm:h-full" />
         </figure>
       )}
       <div className="card-body">
@@ -77,12 +72,12 @@ export function EventCard({
             .join(" · ") || "Event details coming soon"}
         </p>
         <div className="card-actions mt-2">
-          <Link className="btn btn-outline btn-sm" to={`/events/${event.id}`}>
+          <Link className="btn btn-neutral btnoutline btn-sm shadow-lg" to={`/events/${event.id}`}>
             View details
           </Link>
           {showRegister && (
             <button
-              className="btn btn-primary btn-sm"
+              className="btn btn-primary btn-sm shadow-lg"
               type="button"
               onClick={() => onRegister?.(event)}
             >
@@ -102,27 +97,41 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, totalPages, onChange }: PaginationProps) {
+  const lastPage = Math.max(totalPages, 1);
+
   return (
-    <div className="join justify-center" aria-label="Event pages">
+    <nav
+      className="flex flex-wrap items-center justify-center gap-3 py-4"
+      aria-label="Event pages"
+    >
       <button
-        className="join-item btn"
         type="button"
+        className="btn btn-primary btn-sm border-2 border-solid border-neutral shadow-md gap-1 transition-transform hover:-translate-x-1 disabled:opacity-40"
         disabled={page <= 1}
         onClick={() => onChange?.(page - 1)}
       >
         Previous
       </button>
-      <span className="join-item btn btn-disabled">
-        {page} / {Math.max(totalPages, 1)}
-      </span>
+
+      <div className="flex items-center gap-2 rounded-full border-2 border-solid border-neutral bg-base-100 px-4 py-1 shadow-md">
+        <span className="text-sm font-semibold">Page</span>
+        <span
+          className="badge badge-accent badge-md font-bold tabular-nums"
+          aria-current="page"
+        >
+          {page}
+        </span>
+        <span className="text-sm font-semibold opacity-70">of {lastPage}</span>
+      </div>
+
       <button
-        className="join-item btn"
         type="button"
+        className="btn btn-primary btn-sm border-2 border-solid border-neutral shadow-md gap-1 transition-transform hover:translate-x-1 disabled:opacity-40"
         disabled={page >= totalPages}
         onClick={() => onChange?.(page + 1)}
       >
         Next
       </button>
-    </div>
+    </nav>
   );
 }
