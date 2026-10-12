@@ -1,5 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@300..700&display=swap");
 @import "tailwindcss";
 @plugin "daisyui";
+
+@theme {
+  --font-heading: "Bungee", sans-serif;
+  --font-sans: "Fredoka", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
 
 @plugin "daisyui/theme" {
   name: "lighter-yellow-theme";
@@ -11,8 +30,8 @@
   --color-base-200: rgb(200, 198, 146);
   --color-base-300: rgb(184, 182, 130);
   --color-base-content: rgb(22, 27, 51);
-  --color-primary: rgb(120, 214, 40);
-  --color-primary-content: rgb(22, 27, 51);
+  --color-primary: oklch(44% 0.119 151.328);
+  --color-primary-content: oklch(96% 0.044 156.743);
   --color-secondary: rgb(134, 186, 144);
   --color-secondary-content: rgb(22, 27, 51);
   --color-accent: rgb(252, 251, 226);
@@ -25,8 +44,8 @@
   --color-success-content: rgb(22, 27, 51);
   --color-warning: rgb(160, 195, 0);
   --color-warning-content: rgb(22, 27, 51);
-  --color-error: oklch(71% 0.202 349.761);
-  --color-error-content: oklch(28% 0.109 3.907);
+  --color-error: oklch(40% 0.153 2.432);
+  --color-error-content: oklch(97% 0.013 17.38);
   --radius-selector: 0rem;
   --radius-field: 1rem;
   --radius-box: 0rem;
