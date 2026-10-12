@@ -6,8 +6,8 @@ import registrationReducer from '../features/registrations/registrationsSlice'
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    event: eventReducer,
-    registeration: registrationReducer,
+    events: eventReducer,
+    registrations: registrationReducer,
   }
 });
 
