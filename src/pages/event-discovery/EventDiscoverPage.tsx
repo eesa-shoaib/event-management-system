@@ -74,7 +74,7 @@ function SearchBar({
       <label className="input input-bordered flex flex-1 items-center gap-2 border-2 border-solid border-neutral bg-base-100 shadow-md">
         <input
           type="search"
-          className="grow text-center"
+          className="grow"
           placeholder="Search by name, artist, or team"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -110,9 +110,9 @@ function ResultsSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="card card-side border-2 border-solid border-neutral bg-base-200 shadow-md bordered-4xl"
+          className="card card-side border-2 border-solid border-neutral bg-base-200 shadow-md rounded-4xl"
         >
-          <div className="skeleton h-32 w-32 shrink-0 rounded-none" />
+          <div className="skeleton h-36 w-32 shrink-0 rounded-4xl" />
           <div className="card-body space-y-3">
             <div className="skeleton h-5 w-1/2" />
             <div className="skeleton h-4 w-1/3" />
