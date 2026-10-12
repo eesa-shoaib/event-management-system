@@ -13,7 +13,7 @@ interface AuthState {
   error: string | null;
 }
 const initialState: AuthState = {
-  isAuthenticated: false,
+  isAuthenticated: true,
   currentUser: null,
   status: 'idle',
   error: null
