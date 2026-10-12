@@ -64,6 +64,17 @@ Suggested route structure:
 - `/register` — Registration form
 - `/my-events` — Protected route for user-registered events
 
+### Page and Widget Breakdown
+The application has **5 pages** and **24 page-specific widgets**, plus a shared navbar with **6 widgets**. This is **30 widget definitions** total; repeated event cards are counted once.
+
+Page specifications list each page's widgets, behavior, and API endpoints:
+- [Event Discovery page](pages/event-discovery.md)
+- [Event Details page](pages/event-details.md)
+- [Login page](pages/login.md)
+- [Registration page](pages/register.md)
+- [My Events page](pages/my-events.md)
+- [Shared navbar](pages/navbar.md)
+
 ---
 
 ## External API Integration

@@ -1,0 +1,57 @@
+@import url("https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@300..700&display=swap");
+@import "tailwindcss";
+@plugin "daisyui";
+
+@theme {
+  --font-heading: "Bungee", sans-serif;
+  --font-sans: "Fredoka", sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+@plugin "daisyui/theme" {
+  name: "lighter-yellow-theme";
+  default: true;
+  prefersdark: true;
+  color-scheme: "dark";
+  color-scheme: light;
+  --color-base-100: rgb(214, 212, 160);
+  --color-base-200: rgb(200, 198, 146);
+  --color-base-300: rgb(184, 182, 130);
+  --color-base-content: rgb(22, 27, 51);
+  --color-primary: oklch(44% 0.119 151.328);
+  --color-primary-content: oklch(96% 0.044 156.743);
+  --color-secondary: rgb(134, 186, 144);
+  --color-secondary-content: rgb(22, 27, 51);
+  --color-accent: rgb(252, 251, 226);
+  --color-accent-content: rgb(22, 27, 51);
+  --color-neutral: rgb(98, 88, 112);
+  --color-neutral-content: rgb(245, 243, 187);
+  --color-info: oklch(78% 0.154 211.53);
+  --color-info-content: oklch(30% 0.056 229.695);
+  --color-success: rgb(134, 186, 144);
+  --color-success-content: rgb(22, 27, 51);
+  --color-warning: rgb(160, 195, 0);
+  --color-warning-content: rgb(22, 27, 51);
+  --color-error: oklch(40% 0.153 2.432);
+  --color-error-content: oklch(97% 0.013 17.38);
+  --radius-selector: 0rem;
+  --radius-field: 1rem;
+  --radius-box: 0rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 1;
+  --noise: 1;
+}

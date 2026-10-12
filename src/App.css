@@ -1,0 +1,15 @@
+.navbar-pop {
+  position: relative;
+  isolation: isolate; /* keeps the noise layer inside the navbar */
+  box-shadow: 0 4px 0 0 var(--color-secondary);
+}
+
+.navbar-pop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1; /* sits above the navbar background, below its content */
+  pointer-events: none;
+  opacity: 0.08;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
