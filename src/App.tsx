@@ -1,12 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import {
-  EventDetailsPage,
-  EventDiscoveryPage,
   MyEventsPage
 } from "./pages/SimplePages";
 import LoginPage from "./pages/login/LoginPage";
+import EventDiscoveryPage from "./pages/event-discovery/EventDiscoverPage";
 import RegisterPage from "./pages/register/RegisterPage";
+import { EventDetailsPage } from "./pages/event-details/EventDetailsPage";
 import Layout from "./Layout";
+
 
 function App() {
   return (
