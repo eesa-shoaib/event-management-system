@@ -53,10 +53,16 @@ export function EventFilters({ onSearch }: EventFiltersProps) {
 interface EventCardProps {
   event: EventItem;
   onRegister?: (event: EventItem) => void;
+  onCancel?: (eventId: string) => void;
   showRegister?: boolean;
 }
 
-export function EventCard({ event, onRegister, showRegister = false }: EventCardProps) {
+export function EventCard({
+  event,
+  onRegister,
+  onCancel,
+  showRegister = false,
+}: EventCardProps) {
   return (
     <article className="card border border-neutral bg-base-200 shadow-lg rounded-4xl sm:card-side">
       {event.photos && (
@@ -82,6 +88,16 @@ export function EventCard({ event, onRegister, showRegister = false }: EventCard
               onClick={() => onRegister?.(event)}
             >
               Register
+            </button>
+          )}
+          {onCancel && (
+            <button
+              className="btn btn-outline btn-sm shadow-lg"
+              type="button"
+              onClick={() => onCancel(event.id)}
+              aria-label={`Cancel registration for ${event.name}`}
+            >
+              Cancel registration
             </button>
           )}
         </div>
