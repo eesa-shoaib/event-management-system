@@ -1,46 +1,74 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-}
+import { loadSavedSession, type UserProfile } from "./authService";
 
 interface AuthState {
   isAuthenticated: boolean;
-  currentUser: User | null;
-  status: 'idle' | 'loading' | 'failed';
+  currentUser: UserProfile | null;
+  status: "idle" | "loading" | "failed";
   error: string | null;
 }
-const initialState: AuthState = {
-  isAuthenticated: true,
-  currentUser: null,
-  status: 'idle',
-  error: null
-
+function getInitialState(): AuthState {
+  try {
+    const currentUser = loadSavedSession();
+    return {
+      isAuthenticated: currentUser !== null,
+      currentUser,
+      status: "idle",
+      error: null,
+    };
+  } catch (error) {
+    return {
+      isAuthenticated: false,
+      currentUser: null,
+      status: "failed",
+      error: error instanceof Error ? error.message : "Could not restore session.",
+    };
+  }
 }
+
 const authSlice = createSlice({
   name: "auth",
-  initialState,
+  initialState: getInitialState(),
   reducers: {
-    loginSucceed: (state, action: PayloadAction<User>) => {
-      state.isAuthenticated = true;
-      state.currentUser = action.payload;
+    authRequestStarted(state) {
+      state.status = "loading";
       state.error = null;
     },
-    registerSucceeded: (state, action: PayloadAction<User>) => {
+    loginSucceeded(state, action: PayloadAction<UserProfile>) {
       state.isAuthenticated = true;
       state.currentUser = action.payload;
+      state.status = "idle";
       state.error = null;
     },
-    logout: (state) => {
+    registerSucceeded(state, action: PayloadAction<UserProfile>) {
+      state.isAuthenticated = true;
+      state.currentUser = action.payload;
+      state.status = "idle";
+      state.error = null;
+    },
+    authRequestFailed(state, action: PayloadAction<string>) {
+      state.status = "failed";
+      state.error = action.payload;
+    },
+    logout(state) {
       state.isAuthenticated = false;
       state.currentUser = null;
+      state.status = "idle";
+      state.error = null;
     },
-    clearAuthError: (state) => { state.error = null; },
-
+    clearAuthError(state) {
+      state.error = null;
+      if (state.status === "failed") state.status = "idle";
+    },
   },
-})
+});
 
-export const { registerSucceeded, loginSucceed, logout, clearAuthError } = authSlice.actions;
+export const {
+  authRequestStarted,
+  authRequestFailed,
+  loginSucceeded,
+  registerSucceeded,
+  logout,
+  clearAuthError,
+} = authSlice.actions;
 export default authSlice.reducer;
