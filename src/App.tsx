@@ -1,8 +1,6 @@
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useAppSelector } from "./app/hooks";
-import {
-  MyEventsPage
-} from "./pages/SimplePages";
+import MyEventsPage from "./pages/my-events/MyEventsPage";
 import LoginPage from "./pages/login/LoginPage";
 import EventDiscoveryPage from "./pages/event-discovery/EventDiscoverPage";
 import RegisterPage from "./pages/register/RegisterPage";
