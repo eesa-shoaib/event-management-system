@@ -1,3 +1,4 @@
+import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
@@ -7,6 +8,8 @@ import {
   setPage,
 } from "../../features/events/eventsSlice";
 import { EventCard, Pagination } from "../../components/EventWidgets";
+import { type EventItem } from "../../features/events/eventsSlice";
+import { addRegistration } from "../../features/registrations/registrationsSlice";
 
 const CATEGORIES = [
   { value: "", label: "All" },
@@ -121,13 +124,49 @@ function ResultsSkeleton() {
 }
 
 function EventDiscoveryPage() {
+
   const dispatch = useAppDispatch();
+
+  const currentUser = useAppSelector((state) => state.auth.currentUser);
+
+  const userRegistration = useAppSelector((state) => state.registrations.items);
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [registrationMsg, setRegistrationMsg] = useState<string | null>(null,);
+
+
   const { items, status, error, keyword, classification, page, totalPages } =
     useAppSelector((state) => state.events);
 
   useEffect(() => {
     dispatch(fetchEvents({ keyword, classification, page }));
   }, [dispatch, keyword, classification, page]);
+
+  useEffect(() => {
+    if (!registrationMsg) return;
+    const timeoutId = window.setTimeout(() => setRegistrationMsg(null), 4000);
+    return () => window.clearTimeout(timeoutId);
+  }, [registrationMsg]);
+
+  const handleRegister = (event: EventItem) => {
+    if (!currentUser) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+    const alreadyRegistered = userRegistration.some(
+      (registration) =>
+        registration.userId === currentUser.id &&
+        registration.event.id === event.id
+
+    );
+
+    if (alreadyRegistered) return;
+
+    dispatch(addRegistration({ userId: currentUser.id, event }));
+    setRegistrationMsg(`You are registered for ${event.name}`);
+  }
 
   const handleKeywordSearch = (newKeyword: string) => {
     dispatch(setKeyword(newKeyword));
@@ -147,6 +186,25 @@ function EventDiscoveryPage() {
     <section className="space-y-6 bg-base-300 px-6 py-8 md:px-8 border-2 border-neutral rounded-4xl shadow-lg">
       <div className="text-center">
         <h1 className="text-3xl font-bold md:text-4xl">Find events</h1>
+        {registrationMsg && (
+          <div className="toast toast-top toast-end z-[100] pointer-events-none">
+            <div
+              className="alert alert-success pointer-events-auto border-2 border-solid border-neutral text-left shadow-md rounded-box"
+              role="status"
+              aria-live="polite"
+            >
+              <span className="font-semibold">{registrationMsg}</span>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                aria-label="Dismiss registration confirmation"
+                onClick={() => setRegistrationMsg(null)}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        )}
         <p className="mt-2 text-base-content/70">
           Search by name or browse by category.
         </p>
@@ -175,7 +233,6 @@ function EventDiscoveryPage() {
       {status === "succeeded" && items.length === 0 && (
         <div className="card border-2 border-solid border-neutral bg-base-200 shadow-md">
           <div className="card-body items-center text-center">
-            <span className="text-5xl" aria-hidden="true">🔎</span>
             <h2 className="card-title text-2xl">No events found</h2>
             <p className="text-base-content/70">
               Try a different keyword or pick another category.
@@ -192,7 +249,13 @@ function EventDiscoveryPage() {
                 key={event.id}
                 event={event}
                 showRegister
-                onRegister={(e) => console.log("Register for", e.name)}
+                isRegistered={userRegistration.some(
+                  (registration) =>
+                    registration.userId === currentUser?.id &&
+                    registration.event.id === event.id,
+                )}
+
+                onRegister={handleRegister}
               />
             ))}
           </div>

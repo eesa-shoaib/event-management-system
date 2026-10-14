@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { EventCard } from "../../components/EventWidgets";
@@ -19,6 +19,13 @@ export default function MyEventsPage() {
       now.getDate(),
     ).padStart(2, "0")}`;
   });
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!feedback) return;
+    const timeoutId = window.setTimeout(() => setFeedback(null), 4000);
+    return () => window.clearTimeout(timeoutId);
+  }, [feedback]);
 
   const myRegistrations = registrations.filter(
     (registration) => registration.userId === currentUser?.id,
@@ -34,7 +41,13 @@ export default function MyEventsPage() {
 
   function handleCancel(eventId: string) {
     if (!currentUser) return;
+    const registration = myRegistrations.find(
+      (item) => item.event.id === eventId,
+    );
+    if (!registration) return;
+
     dispatch(cancelRegistration({ userId: currentUser.id, eventId }));
+    setFeedback(`Registration for ${registration.event.name} cancelled.`);
   }
 
   return (
@@ -45,6 +58,26 @@ export default function MyEventsPage() {
           Keep track of the events you have registered for.
         </p>
       </header>
+
+      {feedback && (
+        <div className="toast toast-top toast-end z-[100] pointer-events-none">
+          <div
+            className="alert alert-success pointer-events-auto border-2 border-solid border-neutral shadow-md rounded-box"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="font-semibold">{feedback}</span>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              aria-label="Dismiss cancellation confirmation"
+              onClick={() => setFeedback(null)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       {myRegistrations.length === 0 ? (
         <div className="card border-2 border-solid border-neutral bg-base-200 shadow-md">
