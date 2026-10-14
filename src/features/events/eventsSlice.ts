@@ -54,6 +54,7 @@ interface EventState {
   totalPages: number;
   keyword: string;
   classification: string;
+  eventDate: string;
 }
 
 type RequestStatus = "idle" | "loading" | "succeeded" | "failed";
@@ -63,6 +64,7 @@ interface EventFilters {
   keyword: string;
   classification: string;
   page: number;
+  eventDate: string;
 }
 
 const initialState: EventState = {
@@ -77,6 +79,7 @@ const initialState: EventState = {
   totalPages: 0,
   keyword: "",
   classification: "",
+  eventDate: "",
 };
 
 function mapTicketmasterEvent(event: TicketmasterEvent): EventItem {
@@ -150,7 +153,7 @@ export const fetchEvents = createAsyncThunk<
   { items: EventItem[]; totalPages: number },
   EventFilters,
   RejectConfig
->("events/fetchEvents", async ({ keyword, classification, page }, { rejectWithValue }) => {
+>("events/fetchEvents", async ({ keyword, classification, page, eventDate }, { rejectWithValue }) => {
   try {
     const params: Record<string, string> = {
       page: String(page),
@@ -158,6 +161,10 @@ export const fetchEvents = createAsyncThunk<
     };
     if (keyword) params.keyword = keyword;
     if (classification) params.classificationName = classification;
+    if (eventDate) {
+      params.startDateTime = `${eventDate}T00:00:00Z`;
+      params.endDateTime = `${eventDate}T23:59:59Z`;
+    }
 
     const response = await requestTicketmaster<TicketmasterSearchResponse>(
       "events.json",
@@ -181,6 +188,9 @@ const eventsSlice = createSlice({
     },
     setClassification(state, action: PayloadAction<string>) {
       state.classification = action.payload;
+    },
+    setEventDate(state, action: PayloadAction<string>) {
+      state.eventDate = action.payload;
     },
     setPage(state, action: PayloadAction<number>) {
       state.page = action.payload;
@@ -222,5 +232,6 @@ const eventsSlice = createSlice({
   },
 });
 
-export const { setKeyword, setPage, setClassification } = eventsSlice.actions;
+export const { setKeyword, setPage, setClassification, setEventDate } =
+  eventsSlice.actions;
 export default eventsSlice.reducer;

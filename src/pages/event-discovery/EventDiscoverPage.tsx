@@ -4,11 +4,12 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   fetchEvents,
   setClassification,
+  setEventDate,
   setKeyword,
   setPage,
 } from "../../features/events/eventsSlice";
 import { EventCard, Pagination } from "../../components/EventWidgets";
-import { type EventItem } from "../../features/events/eventsSlice";
+import type { EventItem } from "../../features/events/eventsSlice";
 import { addRegistration } from "../../features/registrations/registrationsSlice";
 
 const CATEGORIES = [
@@ -54,20 +55,35 @@ function CategoryTabs({ value, onChange, }: {
 
 function SearchBar({
   initialValue,
+  initialEventDate,
   onSearch,
 }: {
   initialValue: string;
-  onSearch: (keyword: string) => void;
+  initialEventDate: string;
+  onSearch: (keyword: string, eventDate: string) => void;
 }) {
   const [draft, setDraft] = useState(initialValue);
+  const [draftEventDate, setDraftEventDate] = useState(initialEventDate);
+  const [dateError, setDateError] = useState<string | null>(null);
+  const [minimumDate] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(
+      today.getDate(),
+    ).padStart(2, "0")}`;
+  });
 
   return (
     <form
       role="search"
-      className="flex flex-col gap-3 sm:flex-row sm:gap-4"
+      className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        onSearch(draft.trim());
+        if (draftEventDate && draftEventDate < minimumDate) {
+          setDateError("Choose today or a future date.");
+          return;
+        }
+        setDateError(null);
+        onSearch(draft.trim(), draftEventDate);
       }}
     >
       <label className="input input-bordered flex flex-1 items-center border-2 border-solid border-neutral bg-base-100 shadow-md">
@@ -86,19 +102,40 @@ function SearchBar({
             aria-label="Clear search"
             onClick={() => {
               setDraft("");
-              onSearch("");
+              onSearch("", draftEventDate);
             }}
           >
             ✕
           </button>
         )}
       </label>
+      <label className="form-control">
+        <input
+          className="input input-bordered w-full border-2 border-solid border-neutral bg-base-100 shadow-md"
+          type="date"
+          value={draftEventDate}
+          min={minimumDate}
+          onChange={(e) => {
+            setDraftEventDate(e.target.value);
+            setDateError(null);
+          }}
+          aria-label="Event date"
+        />
+      </label>
       <button
         type="submit"
-        className="btn btn-primary w-full border-2 border-solid border-neutral shadow-md sm:w-auto"
+        className="btn btn-primary w-full border-2 border-solid border-neutral shadow-md"
       >
         Search
       </button>
+      {dateError && (
+        <div
+          className="alert alert-error border-2 border-solid border-neutral shadow-md rounded-box sm:col-span-2 lg:col-span-3"
+          role="alert"
+        >
+          <span>{dateError}</span>
+        </div>
+      )}
     </form>
   );
 }
@@ -124,25 +161,26 @@ function ResultsSkeleton() {
 }
 
 function EventDiscoveryPage() {
-
   const dispatch = useAppDispatch();
-
   const currentUser = useAppSelector((state) => state.auth.currentUser);
-
-  const userRegistration = useAppSelector((state) => state.registrations.items);
-
+  const userRegistrations = useAppSelector((state) => state.registrations.items);
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [registrationMsg, setRegistrationMsg] = useState<string | null>(null,);
-
-
-  const { items, status, error, keyword, classification, page, totalPages } =
-    useAppSelector((state) => state.events);
+  const [registrationMsg, setRegistrationMsg] = useState<string | null>(null);
+  const {
+    items,
+    status,
+    error,
+    keyword,
+    classification,
+    eventDate,
+    page,
+    totalPages,
+  } = useAppSelector((state) => state.events);
 
   useEffect(() => {
-    dispatch(fetchEvents({ keyword, classification, page }));
-  }, [dispatch, keyword, classification, page]);
+    dispatch(fetchEvents({ keyword, classification, page, eventDate }));
+  }, [dispatch, keyword, classification, page, eventDate]);
 
   useEffect(() => {
     if (!registrationMsg) return;
@@ -155,21 +193,21 @@ function EventDiscoveryPage() {
       navigate("/login", { state: { from: location } });
       return;
     }
-    const alreadyRegistered = userRegistration.some(
+
+    const alreadyRegistered = userRegistrations.some(
       (registration) =>
         registration.userId === currentUser.id &&
-        registration.event.id === event.id
-
+        registration.event.id === event.id,
     );
-
     if (alreadyRegistered) return;
 
     dispatch(addRegistration({ userId: currentUser.id, event }));
-    setRegistrationMsg(`You are registered for ${event.name}`);
-  }
+    setRegistrationMsg(`You are registered for ${event.name}.`);
+  };
 
-  const handleKeywordSearch = (newKeyword: string) => {
+  const handleSearch = (newKeyword: string, newEventDate: string) => {
     dispatch(setKeyword(newKeyword));
+    dispatch(setEventDate(newEventDate));
     dispatch(setPage(0));
   };
 
@@ -214,7 +252,11 @@ function EventDiscoveryPage() {
         <div className="flex justify-center">
           <CategoryTabs value={classification} onChange={handleCategoryChange} />
         </div>
-        <SearchBar initialValue={keyword} onSearch={handleKeywordSearch} />
+        <SearchBar
+          initialValue={keyword}
+          initialEventDate={eventDate}
+          onSearch={handleSearch}
+        />
       </div>
 
       {status === "loading" && <ResultsSkeleton />}
@@ -233,6 +275,7 @@ function EventDiscoveryPage() {
       {status === "succeeded" && items.length === 0 && (
         <div className="card border-2 border-solid border-neutral bg-base-200 shadow-md">
           <div className="card-body items-center text-center">
+            <span className="text-5xl" aria-hidden="true">🔎</span>
             <h2 className="card-title text-2xl">No events found</h2>
             <p className="text-base-content/70">
               Try a different keyword or pick another category.
@@ -249,12 +292,11 @@ function EventDiscoveryPage() {
                 key={event.id}
                 event={event}
                 showRegister
-                isRegistered={userRegistration.some(
+                isRegistered={userRegistrations.some(
                   (registration) =>
                     registration.userId === currentUser?.id &&
                     registration.event.id === event.id,
                 )}
-
                 onRegister={handleRegister}
               />
             ))}
