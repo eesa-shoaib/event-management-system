@@ -1,43 +1,98 @@
-import { useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import EventHero from "../../features/events/components/details/EventHero";
 import EventMetadata from "../../features/events/components/details/EventMetadata";
 import EventSchedule from "../../features/events/components/details/EventSchedule";
 import VenueLocation from "../../features/events/components/details/VenueLocation";
-import { fetchEventById } from "../../features/events/eventsSlice";
+import { fetchEventById, type EventItem } from "../../features/events/eventsSlice";
+import { addRegistration } from "../../features/registrations/registrationsSlice";
 
 function EventDetailSkeleton() {
   return (
-    <div className="card border-2 border-solid border-neutral bg-base-200 shadow-md">
-      <div className="card-body space-y-6" aria-busy="true" aria-label="Loading event">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="skeleton h-64 w-full rounded-box" />
-          <div className="space-y-4">
-            <div className="skeleton h-6 w-24 rounded-full" />
-            <div className="skeleton h-10 w-3/4" />
-            <div className="flex gap-2">
-              <div className="skeleton h-8 w-32 rounded-full" />
-              <div className="skeleton h-8 w-28 rounded-full" />
-            </div>
-            <div className="skeleton h-4 w-full" />
-            <div className="skeleton h-4 w-5/6" />
-            <div className="skeleton h-4 w-2/3" />
+    <article
+      className="card border-2 border-solid border-neutral bg-base-200 shadow-md rounded-box"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading event"
+    >
+      <div className="card-body space-y-6">
+        <header className="space-y-4">
+          <div className="skeleton h-64 md:h-96 w-full rounded-box" />
+          <div className="skeleton h-8 md:h-9 w-3/4" />
+          <div className="skeleton h-8 md:h-9 w-1/2 md:hidden" />
+        </header>
+
+        <div className="divider my-0" />
+
+        <section className="space-y-2">
+          <div className="skeleton h-5 w-36" />
+          <div className="skeleton h-4 w-2/3" />
+        </section>
+
+        <section className="space-y-2">
+          <div className="skeleton h-5 w-40" />
+          <div className="skeleton h-4 w-1/2" />
+          <div className="skeleton h-4 w-3/4" />
+        </section>
+
+        <section className="space-y-2">
+          <div className="skeleton h-5 w-28" />
+          <div className="skeleton h-4 w-2/5" />
+          <div className="mt-4">
+            <div className="skeleton h-4 w-1/3" />
           </div>
-        </div>
-        <div className="skeleton h-40 w-full rounded-box" />
-        <div className="skeleton h-40 w-full rounded-box" />
+        </section>
       </div>
-    </div>
+    </article>
   );
 }
 
 export function EventDetailsPage() {
   const { id } = useParams();
+  const currentUser = useAppSelector((state) => state.auth.currentUser);
+  const userRegistrations = useAppSelector((state) => state.registrations.items);
+  const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
+  const [registrationMsg, setRegistrationMsg] = useState<string | null>(null);
   const { activeEvent, detailStatus, detailError } = useAppSelector(
     (state) => state.events,
   );
+
+  const handleRegister = (event: EventItem) => {
+    if (!currentUser) {
+      navigate("/login", { state: { from: location } });
+      return;
+    }
+
+    const alreadyRegistered = userRegistrations.some(
+      (registration) =>
+        registration.userId === currentUser.id &&
+        registration.event.id === event.id,
+    );
+
+    if (alreadyRegistered) return;
+
+    dispatch(addRegistration({ userId: currentUser.id, event }));
+    setRegistrationMsg(`You are registered for ${event.name}.`);
+  };
+
+  const isRegistered = Boolean(
+    currentUser &&
+    activeEvent &&
+    userRegistrations.some(
+      (registration) =>
+        registration.userId === currentUser.id &&
+        registration.event.id === activeEvent.id,
+    ),
+  );
+
+  useEffect(() => {
+    if (!registrationMsg) return;
+    const timeoutId = window.setTimeout(() => setRegistrationMsg(null), 4000);
+    return () => window.clearTimeout(timeoutId);
+  }, [registrationMsg]);
 
   useEffect(() => {
     if (id) dispatch(fetchEventById(id));
@@ -82,6 +137,36 @@ export function EventDetailsPage() {
             <EventSchedule event={activeEvent} />
             <VenueLocation event={activeEvent} />
             <EventMetadata event={activeEvent} />
+            {registrationMsg && (
+              <div className="toast toast-top toast-end z-[100] pointer-events-none">
+                <div
+                  className="alert alert-success pointer-events-auto border-2 border-solid border-neutral shadow-md rounded-box"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <span className="font-semibold">{registrationMsg}</span>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-sm"
+                    aria-label="Dismiss registration confirmation"
+                    onClick={() => setRegistrationMsg(null)}
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="card-actions">
+              <button
+                className={`btn ${isRegistered ? "btn-disabled" : "btn-primary"}`}
+                type="button"
+                disabled={isRegistered}
+                aria-pressed={isRegistered}
+                onClick={() => handleRegister(activeEvent)}
+              >
+                {isRegistered ? "Registered" : "Register"}
+              </button>
+            </div>
           </div>
         </article>
       )}

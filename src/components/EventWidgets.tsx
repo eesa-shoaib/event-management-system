@@ -55,6 +55,7 @@ interface EventCardProps {
   onRegister?: (event: EventItem) => void;
   onCancel?: (eventId: string) => void;
   showRegister?: boolean;
+  isRegistered?: boolean;
 }
 
 export function EventCard({
@@ -62,6 +63,7 @@ export function EventCard({
   onRegister,
   onCancel,
   showRegister = false,
+  isRegistered,
 }: EventCardProps) {
   return (
     <article className="card border border-neutral bg-base-200 shadow-lg rounded-4xl sm:card-side">
@@ -83,11 +85,13 @@ export function EventCard({
           </Link>
           {showRegister && (
             <button
-              className="btn btn-primary btn-sm shadow-lg"
+              className={`btn btn-sm shadow-lg ${isRegistered ? "btn-disabled" : "btn-primary"}`}
+              disabled={isRegistered}
+              aria-pressed={isRegistered}
               type="button"
               onClick={() => onRegister?.(event)}
             >
-              Register
+              {isRegistered ? "Registered" : "Register"}
             </button>
           )}
           {onCancel && (

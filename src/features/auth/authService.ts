@@ -33,6 +33,11 @@ function isStoredUser(value: unknown): value is StoredUser {
 
 const USERS_KEY = "event-app-users";
 const SESSION_KEY = "event-app-session";
+const DEMO_ACCOUNT = {
+  name: "Demo User",
+  email: "demo@dev.dev",
+  password: "1234567890",
+};
 
 function readUsers(): StoredUser[] {
   const raw = localStorage.getItem(USERS_KEY);
@@ -130,9 +135,29 @@ export async function loginDemoUser(
   password: string,
 ): Promise<UserProfile> {
   const normalizedEmail = email.trim().toLowerCase();
-  const user = readUsers().find(
+  let users = readUsers();
+  let user = users.find(
     (savedUser) => savedUser.profile.email === normalizedEmail,
   );
+
+  if (
+    !user &&
+    normalizedEmail === DEMO_ACCOUNT.email &&
+    password === DEMO_ACCOUNT.password
+  ) {
+    const profile: UserProfile = {
+      id: crypto.randomUUID(),
+      name: DEMO_ACCOUNT.name,
+      email: DEMO_ACCOUNT.email,
+    };
+    const salt = createSalt();
+    const passwordHash = await hashPassword(DEMO_ACCOUNT.password, salt);
+    const demoUser: StoredUser = { profile, salt, passwordHash };
+
+    users = [...users, demoUser];
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    user = demoUser;
+  }
 
   if (!user || (await hashPassword(password, user.salt)) !== user.passwordHash) {
     throw new Error("Email or password is incorrect.");
