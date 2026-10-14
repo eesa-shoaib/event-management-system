@@ -1,8 +1,9 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, type NavLinkProps } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { logout } from "../features/auth/authSlice";
+import { authRequestFailed, logout } from "../features/auth/authSlice";
+import { clearSavedSession } from "../features/auth/authService";
 
-const navLinkClass = ({ isActive }) =>
+const navLinkClass: NavLinkProps["className"] = ({ isActive }) =>
   `btn btn-md px-4
   transition-all duration-200
   ${isActive ? "btn-neutral shadow-md " : "btn-ghost hover:bg-neutral/30 hover:shadow-lg"}`;
@@ -11,7 +12,7 @@ function Navbar() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const { isAuthenticated, currentUser } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, currentUser, error } = useAppSelector((state) => state.auth);
 
   const closeDropdown = () => {
     if (document.activeElement instanceof HTMLElement) {
@@ -21,80 +22,82 @@ function Navbar() {
 
   const handleLogout = () => {
     closeDropdown();
-    dispatch(logout());
-    navigate("/login");
+    try {
+      clearSavedSession();
+      dispatch(logout());
+      navigate("/login");
+    } catch (logoutError) {
+      dispatch(
+        authRequestFailed(
+          logoutError instanceof Error
+            ? logoutError.message
+            : "Could not clear the saved session.",
+        ),
+      );
+    }
   };
 
   return (
-    <header className="navbar bg-base-300 border-2 border-solid border-neutral shadow-lg px-16 py-4 rounded-4xl">
-      <div className="navbar-start">
-        <Link to="/events" className="link link-base-content text-lg font-bold">
-          Event Finder
-        </Link>
-      </div>
+    <>
+      <header className="navbar rounded-4xl border-2 border-solid border-neutral bg-base-300 px-3 py-3 shadow-lg sm:px-6 lg:px-8">
+        <div className="navbar-start min-w-0">
+          <Link to="/events" className="link link-base-content truncate text-lg font-bold sm:text-xl">
+            Event Finder
+          </Link>
+        </div>
 
-      <nav className="navbar-end gap-2" aria-label="Main navigation">
-        <NavLink to="/events" className={navLinkClass}>
-          Events
-        </NavLink>
-        <NavLink to="/my-events" className={navLinkClass}>
-          My Events
-        </NavLink>
-
-        {isAuthenticated ? (
-          <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-primary btn-sm border-2 border-solid border-neutral shadow-md"
-            >
-              {currentUser?.name || "User"}
-              <svg className="w-3 h-3" viewBox="0 0 10 6" fill="currentColor" aria-hidden="true">
-                <path d="M0 0l5 6 5-6z" />
-              </svg>
+        <nav className="navbar-end hidden gap-1 sm:flex lg:gap-2" aria-label="Main navigation">
+          <NavLink to="/events" className={navLinkClass}>
+            Events
+          </NavLink>
+          <NavLink to="/my-events" className={navLinkClass}>
+            My Events
+          </NavLink>
+          {isAuthenticated ? (
+            <div className="dropdown dropdown-end">
+              <button type="button" tabIndex={0} className="btn btn-primary btn-sm border-2 border-solid border-neutral shadow-md">
+                <span className="max-w-32 truncate">{currentUser?.name || "User"}</span>
+                <span aria-hidden="true">▾</span>
+              </button>
+              <ul tabIndex={0} className="dropdown-content menu z-10 mt-2 w-40 rounded-box border-2 border-solid border-neutral bg-base-200 p-2 shadow-lg">
+                <li><button type="button" onClick={handleLogout}>Log out</button></li>
+              </ul>
             </div>
-            <ul
+          ) : (
+            <>
+              <NavLink to="/login" className={navLinkClass}>Sign in</NavLink>
+              <NavLink to="/register" className="btn btn-primary btn-sm border-2 border-solid border-neutral shadow-md">Sign up</NavLink>
+            </>
+          )}
+        </nav>
+
+        <div className="navbar-end sm:hidden">
+          <div className="dropdown dropdown-end">
+            <button
+              type="button"
               tabIndex={0}
-              className="dropdown-content menu bg-base-200 rounded-box z-10 mt-2 w-40 p-2 shadow-lg border-2 border-solid border-neutral"
+              className="btn btn-primary btn-sm border-2 border-solid border-neutral shadow-md"
+              aria-label="Open navigation menu"
             >
-              <li>
-                <button type="button" onClick={handleLogout}>
-                  Log Out
-                </button>
-              </li>
+              Menu <span aria-hidden="true">☰</span>
+            </button>
+            <ul tabIndex={0} className="dropdown-content menu z-10 mt-2 w-48 rounded-box border-2 border-solid border-neutral bg-base-200 p-2 shadow-lg">
+              <li><Link to="/events" onClick={closeDropdown}>Events</Link></li>
+              <li><Link to="/my-events" onClick={closeDropdown}>My Events</Link></li>
+              {isAuthenticated ? (
+                <li><button type="button" onClick={handleLogout}>Log out</button></li>
+              ) : (
+                <>
+                  <li><Link to="/login" onClick={closeDropdown}>Sign in</Link></li>
+                  <li><Link to="/register" onClick={closeDropdown}>Sign up</Link></li>
+                </>
+              )}
             </ul>
           </div>
-        ) : (
-          <div className="dropdown dropdown-end">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-primary btn-sm border-2 border-solid border-neutral shadow-md"
-            >
-              Log in
-              <svg className="w-3 h-3" viewBox="0 0 10 6" fill="currentColor" aria-hidden="true">
-                <path d="M0 0l5 6 5-6z" />
-              </svg>
-            </div>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu bg-base-100 rounded-box z-10 mt-2 w-40 p-2 shadow-lg border-2 border-solid border-neutral"
-            >
-              <li>
-                <Link to="/login" onClick={closeDropdown}>
-                  Log in
-                </Link>
-              </li>
-              <li>
-                <Link to="/register" onClick={closeDropdown}>
-                  Sign up
-                </Link>
-              </li>
-            </ul>
-          </div>
-        )}
-      </nav>
-    </header>
+        </div>
+      </header>
+      {error && <p className="mt-2 text-sm text-error" role="alert">{error}</p>}
+    </>
   );
 }
 

@@ -25,7 +25,7 @@ function CategoryTabs({ value, onChange, }: {
     <div
       role="tablist"
       aria-label="Event categories"
-      className="flex flex-wrap justify-center gap-4 rounded-box"
+      className="flex flex-wrap justify-center gap-2 rounded-box"
     >
       {CATEGORIES.map((cat) => {
         const isActive = value === cat.value;
@@ -36,7 +36,7 @@ function CategoryTabs({ value, onChange, }: {
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(cat.value)}
-            className={`btn btn-md rounded-full border-2 border-solid border-neutral ${isActive
+            className={`btn btn-md rounded-full px-6 border-2 border-solid border-neutral ${isActive
               ? "btn-primary shadow-md"
               : "bg-base-200 font-semibold hover:bg-base-300"
               }`}
@@ -58,20 +58,16 @@ function SearchBar({
 }) {
   const [draft, setDraft] = useState(initialValue);
 
-  useEffect(() => {
-    setDraft(initialValue);
-  }, [initialValue]);
-
   return (
     <form
       role="search"
-      className="flex flex-col gap-2 sm:flex-row"
+      className="flex flex-col gap-3 sm:flex-row sm:gap-4"
       onSubmit={(e) => {
         e.preventDefault();
         onSearch(draft.trim());
       }}
     >
-      <label className="input input-bordered flex flex-1 items-center gap-2 border-2 border-solid border-neutral bg-base-100 shadow-md">
+      <label className="input input-bordered flex flex-1 items-center border-2 border-solid border-neutral bg-base-100 shadow-md">
         <input
           type="search"
           className="grow"
@@ -96,7 +92,7 @@ function SearchBar({
       </label>
       <button
         type="submit"
-        className="btn btn-primary border-2 border-solid border-neutral shadow-md"
+        className="btn btn-primary w-full border-2 border-solid border-neutral shadow-md sm:w-auto"
       >
         Search
       </button>
@@ -110,9 +106,9 @@ function ResultsSkeleton() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="card card-side border-2 border-solid border-neutral bg-base-200 shadow-md rounded-4xl"
+          className="card border-2 border-solid border-neutral bg-base-200 shadow-md sm:card-side rounded-4xl"
         >
-          <div className="skeleton h-36 w-32 shrink-0 rounded-4xl" />
+          <div className="skeleton h-36 w-full shrink-0 rounded-t-4xl sm:h-36 sm:w-44 sm:rounded-l-4xl sm:rounded-tr-none" />
           <div className="card-body space-y-3">
             <div className="skeleton h-5 w-1/2" />
             <div className="skeleton h-4 w-1/3" />
@@ -195,7 +191,7 @@ function EventDiscoveryPage() {
               <EventCard
                 key={event.id}
                 event={event}
-                showRegister={true}
+                showRegister
                 onRegister={(e) => console.log("Register for", e.name)}
               />
             ))}
