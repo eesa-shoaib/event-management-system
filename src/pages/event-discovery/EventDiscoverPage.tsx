@@ -13,13 +13,41 @@ import type { EventItem } from "../../features/events/eventsSlice";
 import { addRegistration } from "../../features/registrations/registrationsSlice";
 
 const CATEGORIES = [
-  { value: "", label: "All" },
-  { value: "Music", label: "Music" },
-  { value: "Sports", label: "Sports" },
-  { value: "Arts & Theatre", label: "Arts" },
-  { value: "Film", label: "Film" },
-  { value: "Miscellaneous", label: "More" },
+  { value: "", label: "All", icon: "all" },
+  { value: "Music", label: "Music", icon: "music" },
+  { value: "Sports", label: "Sports", icon: "sports" },
+  { value: "Arts & Theatre", label: "Arts", icon: "arts" },
+  { value: "Film", label: "Film", icon: "film" },
+  { value: "Miscellaneous", label: "More", icon: "more" },
 ];
+
+function CategoryIcon({ name }: { name: string }) {
+  const commonProps = {
+    className: "h-4 w-4 shrink-0",
+    fill: "none",
+    stroke: "currentColor",
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    strokeWidth: 1.8,
+    viewBox: "0 0 24 24",
+    "aria-hidden": true as const,
+  };
+
+  switch (name) {
+    case "music":
+      return <svg {...commonProps}><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>;
+    case "sports":
+      return <svg {...commonProps}><circle cx="12" cy="12" r="9" /><path d="m8.5 4 3.5 4 4-1 3 4-2 5-5 1-3-4-4 1-2-4 2-4Z" /></svg>;
+    case "arts":
+      return <svg {...commonProps}><path d="M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4 1.9 1.9 0 0 1 1.3-3.3H18a3 3 0 0 0 3-3c0-4.6-4-8.3-9-8.3Z" /><circle cx="7.5" cy="11" r="1" /><circle cx="10" cy="7.5" r="1" /><circle cx="15" cy="8" r="1" /></svg>;
+    case "film":
+      return <svg {...commonProps}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M7 4v16M17 4v16M3 9h4m-4 6h4m10-6h4m-4 6h4" /></svg>;
+    case "more":
+      return <svg {...commonProps}><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></svg>;
+    default:
+      return <svg {...commonProps}><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></svg>;
+  }
+}
 
 function CategoryTabs({ value, onChange, }: {
   value: string;
@@ -29,7 +57,7 @@ function CategoryTabs({ value, onChange, }: {
     <div
       role="tablist"
       aria-label="Event categories"
-      className="flex flex-wrap justify-center gap-2 rounded-box"
+      className="flex flex-wrap justify-center gap-3 rounded-box"
     >
       {CATEGORIES.map((cat) => {
         const isActive = value === cat.value;
@@ -40,11 +68,12 @@ function CategoryTabs({ value, onChange, }: {
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(cat.value)}
-            className={`btn btn-md rounded-full px-6 border-2 border-solid border-neutral ${isActive
+            className={`btn btn-md gap-2 rounded-full px-5 border-2 border-solid border-neutral ${isActive
               ? "btn-primary shadow-md"
               : "bg-base-200 font-semibold hover:bg-base-300"
               }`}
           >
+            <CategoryIcon name={cat.icon} />
             {cat.label}
           </button>
         );
@@ -75,7 +104,7 @@ function SearchBar({
   return (
     <form
       role="search"
-      className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-4"
+      className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:gap-2"
       onSubmit={(e) => {
         e.preventDefault();
         if (draftEventDate && draftEventDate < minimumDate) {
@@ -143,7 +172,7 @@ function SearchBar({
 function ResultsSkeleton() {
   return (
     <div className="grid grid-cols-1 gap-4" aria-busy="true" aria-label="Loading events">
-      {Array.from({ length: 3 }).map((_, i) => (
+      {Array.from({ length: 5 }).map((_, i) => (
         <div
           key={i}
           className="card border-2 border-solid border-neutral bg-base-200 shadow-md sm:card-side rounded-4xl"
