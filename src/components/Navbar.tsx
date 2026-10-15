@@ -41,8 +41,8 @@ function Navbar() {
     <>
       <header className="navbar rounded-4xl border-2 border-solid border-neutral bg-base-300 px-3 py-3 shadow-lg sm:px-6 lg:px-8">
         <div className="navbar-start min-w-0">
-          <Link to="/events" className="link link-base-content truncate text-lg font-bold sm:text-xl">
-            Event Finder
+          <Link to="/events" className="link link-base-content truncate text-xl font-bold sm:text-xl">
+            WestEgg
           </Link>
         </div>
 

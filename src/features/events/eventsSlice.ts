@@ -134,6 +134,10 @@ function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
 
+function formatTicketmasterDateTime(date: Date): string {
+  return `${date.toISOString().slice(0, 19)}Z`;
+}
+
 export const fetchEventById = createAsyncThunk<
   EventItem,
   string,
@@ -158,12 +162,22 @@ export const fetchEvents = createAsyncThunk<
     const params: Record<string, string> = {
       page: String(page),
       size: "5",
+      sort: "date,asc",
     };
     if (keyword) params.keyword = keyword;
     if (classification) params.classificationName = classification;
     if (eventDate) {
-      params.startDateTime = `${eventDate}T00:00:00Z`;
-      params.endDateTime = `${eventDate}T23:59:59Z`;
+      const now = new Date();
+      const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(
+        now.getDate(),
+      ).padStart(2, "0")}`;
+
+      params.localStartDateTime = `${eventDate}T00:00:00,${eventDate}T23:59:59`;
+      if (eventDate === today) {
+        params.startDateTime = formatTicketmasterDateTime(now);
+      }
+    } else {
+      params.startDateTime = formatTicketmasterDateTime(new Date());
     }
 
     const response = await requestTicketmaster<TicketmasterSearchResponse>(
