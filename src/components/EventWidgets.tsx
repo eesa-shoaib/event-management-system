@@ -96,7 +96,7 @@ export function EventCard({
           )}
           {onCancel && (
             <button
-              className="btn btn-outline btn-sm shadow-lg"
+              className="btn btn-error btn-sm shadow-lg"
               type="button"
               onClick={() => onCancel(event.id)}
               aria-label={`Cancel registration for ${event.name}`}
